@@ -1,150 +1,373 @@
-# astro-studio-as-portfolio
+# ASAP (Astro Studio As Portfolio)
 
-当前版本：**v0.2.0**。基于 Vite + React + TypeScript + three.js 的个人主页。
+Build your astronomy portfolio ASAP with this customizable template. The homepage is a first-person space-station observatory: a telescope opens your publications, a computer opens your projects, and a photo frame opens your profile. A plain homepage links to the same three pages.
 
-主页有两版，可以互相切换，默认是游戏版：
+**Version: v0.2.0.** Built with React, TypeScript, Vite, and Three.js. Content lives in TOML and Markdown files, validated by Zod schemas. Paper and repository metadata can be fetched automatically and cached alongside your content.
 
-- **游戏版**：第一人称的空间站观测舱段。望远镜通向 Publications，电脑通向 Code，相框通向 About，主控开关切到普通版。
-- **普通版**：一页普通的主页，三个链接通向同样的三个页面。
+**NOTE: The 3D station is designed for a keyboard and mouse. You can switch to the plain homepage at any time; it is also used automatically when WebGL 2 is unavailable. Feedback is welcome!**
+
+## Quick Start
+
+Use Node.js **22.12 or newer**, Git, and **pnpm 10.34.7**, the package-manager version pinned in this repository.
+
+### 1. Download or clone the repository
 
 ```bash
-pnpm install
-pnpm dev      # 本地预览
-pnpm build    # 输出到 dist/
+git clone https://github.com/YoRHazero/astro-studio-as-portfolio.git
+cd astro-studio-as-portfolio
 ```
 
-## 仓库与素材
+Alternatively, download the repository as a ZIP file from GitHub and extract it to your preferred location.
 
-网站直接使用 `public/` 中已经导出的模型和插画。安装、开发和构建不需要 Blender，也不依赖 `assets/`。
+### 2. Install dependencies
 
-| 路径 | 用途与提交范围 |
+```bash
+pnpm install --frozen-lockfile
+```
+
+The exported models and illustrations are included. You do not need Blender to run or build the website.
+
+### 3. Run the development server
+
+```bash
+pnpm dev
+```
+
+Open the local URL printed by Vite. Start by editing `content/site.toml`, `content/about.toml`, and `content/about.md` to replace the included profile with your own.
+
+### 4. Build and deploy
+
+```bash
+pnpm build
+pnpm preview
+```
+
+`pnpm build` checks TypeScript and writes the static website to `dist/`. `pnpm preview` lets you inspect that build locally. Publish the contents of `dist/` through your static host's deployment workflow.
+
+For a GitHub Pages project site at `https://<username>.github.io/astro-studio-as-portfolio/`, build with the repository path as Vite's base:
+
+```bash
+pnpm build --base=/astro-studio-as-portfolio/
+```
+
+Use the corresponding path if you rename the repository. A site served at the domain root can use the default build command. Routing uses URL hashes, so individual pages do not require server-side route rewrites.
+
+## Content Format
+
+Site settings and profile details use plain TOML files. Your biography is a plain Markdown file. Each publication and project has its own folder containing an `index.md` with TOML frontmatter wrapped in `+++` delimiters (exactly **three** plus signs):
+
+```md
++++
+name = "Example Project"
+summary = "A short description of the project."
++++
+
+Markdown body content goes here.
+```
+
+The frontmatter is validated by the schemas in [`plugins/content/schema.ts`](plugins/content/schema.ts). Unknown fields, missing required values, and incorrect types produce an error identifying the content file and field.
+
+Put a publication's or project's images in its own folder and reference them with `[[figures]]`. Only listed figures are displayed, in the order you specify. An unlisted image produces a warning, except for an image used as the project's icon.
+
+## Content Map
+
+| File or folder | Page or feature | Schema |
+| --- | --- | --- |
+| `content/site.toml` | Site identity, section labels, and interface text | `siteSchema` |
+| `content/about.toml` | Profile details, links, education, and skills | `aboutSchema` |
+| `content/about.md` | Biography on the About page | Plain Markdown |
+| `content/photo.jpg` | Optional portrait used on the About page and in the station | Referenced by `about.toml` |
+| `content/projects/<slug>/index.md` | One project on the Code page | `projectSchema` |
+| `content/publications/<slug>/index.md` | One paper on the Publications page | `publicationSchema` |
+| `content/projects/<slug>/meta.json` | Cached GitHub metadata | Generated automatically |
+| `content/publications/<slug>/meta.json` | Cached paper metadata | Generated automatically |
+
+The folder name is the item's URL slug. For example, `content/projects/nooboard/index.md` becomes `#/code/nooboard`.
+
+To remove a paper or project, remove its folder. To use a different content directory, set `CONTENT_DIR` when starting the server or building:
+
+```bash
+CONTENT_DIR=/path/to/your/content pnpm dev
+CONTENT_DIR=/path/to/your/content pnpm build
+```
+
+## Site and Home Scene
+
+Edit `content/site.toml`. Keep the existing structure and replace its values with your own.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `title` | string | Base browser-tab title. |
+| `name` | string | Your display name. |
+| `tagline` | string | Short subtitle under your name. |
+| `me` | string or string array | Your name as it appears in author lists; matching authors are shown in bold. |
+| `orcid` | string | Optional ORCID iD used for author matching when metadata includes ORCIDs. |
+| `sections.about`, `sections.publications`, `sections.code` | tables | Each requires `label`, `object`, and `blurb`. |
+| `ui` | table | Interface text; edit the supplied values while keeping all keys. |
+
+For example, update these fields in the existing file:
+
+```toml
+title = "Your Name"
+name = "Your Name"
+tagline = "Astronomer and software developer"
+me = ["Your Name", "Y. Name"]
+
+[sections.publications]
+label = "Publications"
+object = "Telescope"
+blurb = "Papers and talks"
+```
+
+`label` names the destination page, `object` describes its station object, and `blurb` appears on the plain homepage. The station's hover hint shows only the destination label.
+
+| Station object | Destination |
 | --- | --- |
-| `src/`、`plugins/`、`content/`、`tests/` | 网站代码、内容、内容缓存和测试，提交到仓库 |
-| `public/models/`、`public/about/`、`public/favicon.svg` | 运行必需的 GLB、WebP 和图标，提交到仓库 |
-| `dev_docs/` | 本地开发文档、建模约定和素材制作记录，由 `.gitignore` 排除 |
-| `assets/` | 本地素材工作目录；Blender 源文件、制作脚本、原始贴图、历史版本、预览图、出图记录和校验报告，由 `.gitignore` 排除 |
-| `node_modules/`、`dist/`、`.claude/` | 依赖、构建输出和本机工具配置，由 `.gitignore` 排除 |
+| Telescope | Publications: a telescope field with one source per paper, alongside a paper catalog. |
+| Computer | Code: a desktop-style project browser. |
+| Photo frame | About: your profile in an illustrated night-station scene. |
+| Main switch | Plain homepage. |
 
-`assets/` 和 `dev_docs/` 的内容保留在本地，不随源码仓库发布。需要分发可编辑模型时，可单独打包发布。
+Use **WASD** or the arrow keys to move. Click an empty area to capture the mouse and look around, or drag to look without capture. Point at an object within reach and click, press **E**, or press **Enter** to open it. **Esc** releases the mouse or returns one level from a content page.
 
-## 更新内容
+The **Plain version** button also switches homepages. Your choice is remembered in the browser.
 
-只需要改 `content/` 文件夹，不用碰代码：
+## About
 
-```
-content/
-  site.toml              名字、标语、三个页面的标题、界面上的所有固定文字
-  about.toml             照片、职位、单位、链接、教育经历、技能
-  about.md               自由的自我介绍，Markdown
-  photo.jpg              照片，竖版 4:5，宽至少 600 像素；换文件名的话在 about.toml 里改
-  publications/
-    2025-eelg-obscured-agn/  一篇论文一个文件夹，文件夹名就是它的网址
-      index.md           开头两行 +++ 之间写 doi（或 arxiv）和 effect，其余自动获取
-      meta.json          自动生成的论文信息缓存，不要手改
-      figure1.png        图片数量不限，可选
-  projects/
-    nooboard/            一个项目一个文件夹
-      index.md           开头写 repos 和 summary；正文是简短介绍
-      meta.json          自动生成的仓库信息缓存，不要手改
-      screenshot.png     可选
-      icon.png           可选，项目自己的图标（见下）
-```
+Edit `content/about.toml` for structured details and `content/about.md` for your biography. The portrait is also placed in the station's photo frame.
 
-**加一篇论文**：新建一个文件夹，放一个 `index.md`，只写这几行：
+| Field | Type | Notes |
+| --- | --- | --- |
+| `role` | string | Required role or position. |
+| `affiliation` | string | Required institution or organization. |
+| `location` | string | Optional location. |
+| `photo` | string | Optional image filename relative to `content/`; a 4:5 portrait works best. |
+| `links` | array | Optional entries with `label` and `url`. |
+| `education` | array | Optional entries with `period`, `title`, `place`, and an optional `note`. List newest first. |
+| `skills` | array | Optional entries with `group` and a nonempty `items` array. |
+
+Example `about.toml`:
 
 ```toml
-+++
-doi = "10.3847/1538-4357/adaf1b"   # 或 arxiv = "2410.12198"，两个都写也行
-effect = "blackhole"                # 这一页的粒子效果："blackhole" 或 "galaxy"
-+++
+role = "Ph.D. candidate in Physics"
+affiliation = "Your University"
+location = "Your City"
+photo = "photo.jpg"
+
+[[links]]
+label = "Email"
+url = "mailto:you@example.com"
+
+[[links]]
+label = "GitHub"
+url = "https://github.com/your-username"
+
+[[education]]
+period = "2024–2027 (expected)"
+title = "Ph.D. in Physics"
+place = "Your University"
+note = "Research in observational astrophysics."
+
+[[skills]]
+group = "Programming"
+items = ["Python", "Rust", "TypeScript"]
 ```
 
-下次 `pnpm dev` 或 `pnpm build` 时，标题、作者、期刊、年份、摘要会自动获取，存进同一个文件夹的 `meta.json`。
-之后的构建只读这个文件，不再联网。Paper（DOI）和 arXiv 两个链接按钮也会自动生成。删一篇就是删掉文件夹。
+Place the referenced photo in `content/`, or omit `photo` to use the profile without an image. Write your biography directly in `about.md`; it does not need frontmatter.
 
-- **数据来源**：DOI 查 Crossref，拿正式发表的版本；只给 DOI 时，arXiv 编号从 OpenAlex 查到；
-  期刊没提供摘要时（比如 PRD），用 arXiv 的摘要。只给 arXiv 编号、后来正式发表了的，会自动用发表版本。都不需要 API key。
-- **覆盖**：`index.md` 里写了的字段（`title`、`authors`、`venue`、`year`、`links`）优先于自动获取的；
-  正文不空就用正文当摘要，可以用 `$...$` 写公式。
-- **重新获取**：预印本正式发表了，或者想更新信息时运行 `pnpm refresh`（全部）或 `pnpm refresh <文件夹名>`。
-- **不联网也能用**：`title`、`authors`、`venue`、`year` 和正文都手写的话，不会去获取。
-- 还要手写的：`effect`，可选的 `selected`、`note`、额外的 `links` 和图片。
+## Projects
 
-**你的名字加粗**：`site.toml` 里 `me` 列出你所有的署名写法，`orcid` 写你的 ORCID。论文数据里带 ORCID 时按 ORCID 认，
-否则按名字认。如果某篇论文认错了人（比如有同名合作者），在那篇的 `index.md` 里写 `me = "那篇里你的写法"`。
+Create one folder per project in `content/projects/`, with an `index.md` inside it. The Markdown body is the project's introduction. Repository links take visitors to the full source and documentation.
 
-**作者很多时**：超过 20 位作者的论文，页面上只显示前 4 位、你自己和 et al.，鼠标停在作者行上能看到总人数。
+| Field | Type | Notes |
+| --- | --- | --- |
+| `repos` | string or string array | Optional GitHub repositories in `owner/name` form. One project can group several repositories. |
+| `name` | string | Required unless it can be fetched from the first repository. |
+| `summary` | string | Required unless the first repository has a description to use. |
+| `language` | string | Optional override for the fetched repository languages. |
+| `tags` | string array | Optional project tags. |
+| `order` | number | Optional sort order; lower numbers come first. Unordered projects follow, sorted by folder name. |
+| `icon` | string | Optional image filename inside the project folder; a square image works best. |
+| `links` | array | Optional additional links with `label` and `url`. |
+| `figures` | array | Optional images with `file` and an optional `caption`. |
 
-**加一个项目**：新建一个文件夹，放一个 `index.md`：
+### 1. Fetch details from GitHub
+
+Example `content/projects/nooboard/index.md`:
+
+```md
++++
+repos = "YoRHazero/nooboard"
+summary = "Clipboard and file sharing between your computers."
+tags = ["Rust", "Desktop"]
+order = 1
++++
+
+A short introduction to the project and what you built.
+```
+
+The build fetches the repository name, description, language, last push date, homepage, and latest release when available. Values you write in the frontmatter override fetched values. A single-repository project gets Repository, Website, and Download links where available.
+
+For a project spanning several repositories, use an array:
 
 ```toml
-+++
-repos = "YoRHazero/nooboard"        # 由几个仓库组成的项目写成列表
-summary = "一句话，显示在列表里"      # 不写就用仓库的 description
-tags = ["Tokio", "rustls"]          # 可选
-order = 3
-+++
-
-正文是对项目的简短介绍，不放图片；想看详情的人会点进 GitHub。
+repos = ["YoRHazero/noobrowser", "YoRHazero/noobackend"]
 ```
 
-- **自动获取**（GitHub）：名字（不写 `name` 时用仓库名）、语言、最后推送时间（列表里的 Modified 列）。
-  只有一个仓库时，窗口上方会有 Repository、Website（仓库的 homepage）和 Download（最新 release）按钮；
-  几个仓库时，介绍下面会列出每个仓库和它的 description。
-- **缓存**：存在 `meta.json`。仓库信息会变，所以超过一天的缓存在下次构建时自动重新获取；获取失败就继续用旧的，只给提醒。
-- **覆盖**：`name`、`summary`、`language` 写了就优先；`[[links]]` 里写一个同名或同地址的链接可以替换自动生成的那个。
-- 不联网也能用：不写 `repos`，`name` 和 `summary` 手写即可。私有仓库需要设置环境变量 `GITHUB_TOKEN`。
+Each repository is then listed separately in the project window. Metadata is stored in `meta.json` and refreshed on a later build when it is more than a day old. If a refresh fails, an existing matching cache is used with a warning.
 
-**图片**：在 `index.md` 开头用 `[[figures]]` 逐张列出，可以写图注，顺序就是显示顺序。只显示列出的；
-文件夹里没列出的图片不会显示，构建时会提醒。
+Public repositories work without a token. For private repositories or authenticated API access, provide `GITHUB_TOKEN` in the build environment. Repository details included in your content will appear in the generated public site.
 
-**项目图标**：在项目的 `index.md` 开头写 `icon = "icon.png"`（文件放在同一个文件夹里，最好是正方形），
-项目列表、Dock 和项目窗口的头图都会用它。不写的话，会根据项目名和语言自动画一张封面，配上首字母。
+### 2. Write the project manually
 
-**论文页的粒子效果**：每篇论文的 `index.md` 开头必须写 `effect = "blackhole"` 或 `effect = "galaxy"`，决定这一页显示黑洞还是星系。
+Omit `repos` and supply `name` and `summary` to avoid GitHub requests for that project:
 
-**顺序**：论文按年份从新到旧；项目按 `order` 从小到大，没写 `order` 的排在后面。
+```md
++++
+name = "Example Project"
+summary = "A tool for inspecting astronomical spectra."
+language = "Python"
+tags = ["Astronomy", "Data visualization"]
+order = 2
 
-字段写错、漏写或多写时，`pnpm dev` 和 `pnpm build` 会报出是哪个文件的哪一项。
+[[links]]
+label = "Website"
+url = "https://example.com"
++++
 
-内容也可以放在项目之外的文件夹：
+Describe the project, its purpose, and your contribution.
+```
+
+If `icon` is omitted, the site generates a cover from the project name and language.
+
+## Publications
+
+Create one folder per paper in `content/publications/`, with an `index.md` inside it. The Markdown body is the paper's abstract or your own description.
+
+| Field | Type | Notes |
+| --- | --- | --- |
+| `effect` | string | Required. Exactly `blackhole` or `galaxy`; selects the particle scene on the paper page. |
+| `doi` | string | Optional DOI or DOI URL, used to fetch metadata and create a Paper link. |
+| `arxiv` | string | Optional arXiv ID or URL, used to fetch metadata and create an arXiv link. |
+| `title` | string | Required unless supplied by fetched metadata. |
+| `authors` | nonempty string array | Required unless supplied by fetched metadata. |
+| `venue` | string | Required unless supplied by fetched metadata. Journal, conference, or publication status. |
+| `year` | integer | Required unless supplied by fetched metadata. |
+| `selected` | boolean | Optional; defaults to `false`. Marks a selected paper. |
+| `note` | string | Optional short annotation. |
+| `me` | string or string array | Optional per-paper override for your author-name matching. |
+| `links` | array | Optional additional links with `label` and `url`. |
+| `figures` | array | Optional images with `file` and an optional `caption`. |
+
+### 1. Fetch details from DOI or arXiv
+
+Example `content/publications/2025-eelg-obscured-agn/index.md`:
+
+```md
++++
+doi = "10.3847/1538-4357/adaf1b"
+effect = "blackhole"
++++
+```
+
+You can use `arxiv = "2410.12198"` instead of the DOI, or supply both.
+
+On the first build without a matching cache, the content plugin fetches the title, authors, venue, year, and available abstract. DOI metadata comes from Crossref. OpenAlex is used to look for an arXiv counterpart, and arXiv supplies preprint metadata or an abstract when needed. When an arXiv record points to a published DOI, the published metadata is preferred.
+
+The result is saved in `meta.json`. Later builds reuse the paper's cache until you explicitly refresh it. Frontmatter values override fetched values, and a nonempty Markdown body replaces the fetched abstract.
+
+### 2. Write the paper manually
+
+For a paper without automatic metadata, supply all bibliographic fields and write the abstract yourself:
+
+```md
++++
+title = "Example Publication Title"
+authors = ["Your Name", "Another Author"]
+venue = "Example Journal"
+year = 2026
+effect = "galaxy"
+selected = true
+
+[[links]]
+label = "Paper"
+url = "https://example.com/paper"
++++
+
+Write the abstract or a short description of the work here.
+
+Inline equations such as $F = L / (4\pi d^2)$ are supported.
+```
+
+Papers are sorted by year, newest first. Your name is highlighted using `site.toml`'s `orcid` when it matches the metadata, then the spellings in `me`. Use a paper's own `me` field if the automatic match identifies the wrong author.
+
+## Figures and Icons
+
+Store figures beside the item's `index.md` and add one table per image inside its frontmatter:
+
+```toml
+[[figures]]
+file = "figure1.png"
+caption = "The main result."
+
+[[figures]]
+file = "figure2.webp"
+caption = "A closer look at the data."
+```
+
+The `file` value is relative to that paper's or project's folder. This version uses `file`, not the older `src` field. Put the files in the item folder before building.
+
+To use a project icon, add `icon = "icon.png"` at the top level of its frontmatter, before any `[[links]]` or `[[figures]]` tables. The icon is used in the project list, Dock, and project window.
+
+## Refreshing Metadata
+
+Keep generated `meta.json` files with your content so another checkout can reuse them. Do not edit them by hand; put overrides in `index.md`.
 
 ```bash
-CONTENT_DIR=/path/to/content pnpm build
+pnpm refresh                         # Refresh all papers and projects
+pnpm refresh 2025-eelg-obscured-agn    # Refresh one folder
+pnpm refresh nooboard                 # Refresh one project
 ```
 
-内容会反映到游戏里：相框里是你的照片，望远镜对准的天区里每篇论文是一个源。
+Use a refresh when a preprint is published or repository details need updating. `CONTENT_DIR` also applies to this command. Fully manual papers and projects do not need metadata fetching.
 
-## 页面层级
+## Common Validation Rules
 
-网站是三层的树，每一层都有自己的网址，Esc 或返回按钮回到上一层：
+- Each paper or project must be a folder containing `index.md` with `+++` frontmatter delimiters.
+- Unknown TOML fields are rejected; use the names in the tables above.
+- Every paper needs `effect = "blackhole"` or `effect = "galaxy"`.
+- A paper needs a title, authors, venue, and year, either written locally or supplied by fetched metadata.
+- A project needs a name and summary, either written locally or supplied by its repository metadata.
+- Use `venue` and `arxiv` for publications, `repos` for GitHub projects, and `file` for figures.
+- TOML arrays use square brackets, such as `authors = ["A", "B"]`.
+- TOML array tables use double brackets, such as `[[figures]]`. Top-level fields must appear before those tables.
+- Image filenames must point to existing local files. Profile photos are relative to `content/`; project icons and figures are relative to their item folder.
 
+## Project Structure
+
+| Path | Purpose |
+| --- | --- |
+| `content/` | Your profile, papers, projects, images, and metadata caches. |
+| `src/game/` | First-person movement, the station scene, models, and object interactions. |
+| `src/pages/` | About, Publications, Code, and their detail views. |
+| `src/PlainHome.tsx` | Plain homepage linking to the same content. |
+| `plugins/content/` | Content loading, validation, metadata fetching, and Markdown rendering. |
+| `public/models/` | Exported GLB models used by the website. |
+| `public/about/` | The station and train illustrations used on the About page. |
+| `tests/` | Tests for the Earth's rotation and exported model orientation. |
+
+The site builds from the exported assets in `public/`. Local asset-production files in `assets/` and internal notes in `dev_docs/` are ignored by Git and are not required by the build.
+
+Development checks:
+
+```bash
+pnpm lint
+pnpm build
+node --experimental-strip-types --test tests/earth-rotation.test.ts
 ```
-主页（游戏版或普通版）
-├─ About
-├─ Publications          望远镜的视场（可缩放、拖动）+ 论文目录
-│   └─ 单篇论文           标题、全部作者、摘要、图片查看器，配一个粒子构成的黑洞或星系
-└─ Code                  电脑桌面上的文件管理器，列出所有项目
-    └─ 单个项目           一个单独的窗口：说明、截图、仓库链接
-```
 
-## 结构
+## Asset Credits
 
-- `plugins/content/`：读取并校验内容文件的构建插件。`schema.ts` 是字段定义，`papers.ts` 按 DOI/arXiv 获取论文信息，
-  `abstract.ts` 把各种格式的摘要（出版商的 JATS/MathML、arXiv 的 LaTeX、手写的 Markdown）转成 HTML，公式在构建时转成 MathML。
-- `src/pages/`：三个页面和它们的第三层，两版主页共用。
-- `src/PlainHome.tsx`：普通版主页。
-- `src/game/`：游戏版。`layout.ts` 是舱室里所有东西的位置。舱室本身是 `public/models/cabin.glb`，
-  `Room.tsx` 加载它并负责窗外和灯光，`Objects.tsx` 按名字找到模型的部件，贴上屏幕、照片、铭牌、光谱，
-  放主控开关指示灯和阅读灯，驱动开关拉杆。漂浮的笔和本子来自 `props.glb`，窗外地球来自 `earth.glb`。
-- `src/LoadingScreen.tsx`、`src/loader-field.ts`：游戏下载时的加载页。望远镜对一个高红移 AGN 做曝光，光谱是 Hβ + [O III]，
-  进度来自 `src/loading.ts` 记录的真实下载字节数；全部就绪后视场从中心张开，露出舱内。
+Earth surface and cloud imagery comes from NASA / Goddard Space Flight Center's Blue Marble (2002): [land surface, ocean color, and sea ice](https://visibleearth.nasa.gov/view.php?id=57730), and [clouds](https://visibleearth.nasa.gov/view.php?id=57747). Credits: Reto Stockli for land surface, shallow water, and clouds; Robert Simmon for ocean color and compositing.
 
-## 素材署名
-
-地球表面与云层使用 NASA / Goddard Space Flight Center 的 Blue Marble（2002）影像：
-[地表、海洋颜色与海冰](https://visibleearth.nasa.gov/view.php?id=57730)、
-[云层](https://visibleearth.nasa.gov/view.php?id=57747)。
-Reto Stockli 负责陆地表面、浅水区和云层，Robert Simmon 负责海洋颜色和合成。
-
-观测舱与漂浮物模型为项目制作；About 页的车站和电车插画通过图像生成工具创作。
+The cabin and floating-prop models were created for this project. The About page's station and train illustrations were created with an image-generation tool.
