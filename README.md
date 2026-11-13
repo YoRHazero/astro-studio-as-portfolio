@@ -35,22 +35,30 @@ pnpm dev
 
 Open the local URL printed by Vite. Start by editing `content/site.toml`, `content/about.toml`, and `content/about.md` to replace the included profile with your own.
 
-### 4. Build and deploy
+### 4. Deploy to GitHub Pages
 
 ```bash
-pnpm build
-pnpm preview
+npm run deploy
 ```
 
-`pnpm build` checks TypeScript and writes the static website to `dist/`. `pnpm preview` lets you inspect that build locally. Publish the contents of `dist/` through your static host's deployment workflow.
+This command checks TypeScript, builds the site with `/astro-studio-as-portfolio/` as its base path, and publishes the contents of `dist/` to the `gh-pages` branch of your `origin` remote. It also adds `.nojekyll` so GitHub Pages serves the generated files directly. Your Git credentials must allow pushing to that repository.
 
-For a GitHub Pages project site at `https://<username>.github.io/astro-studio-as-portfolio/`, build with the repository path as Vite's base:
+After the first deployment, open your repository's **Settings → Pages** and configure:
+
+- **Source:** Deploy from a branch
+- **Branch:** `gh-pages`
+- **Folder:** `/ (root)`
+
+Click **Save**. Once GitHub finishes publishing, the site will be available at `https://<username>.github.io/astro-studio-as-portfolio/`. Run `npm run deploy` again whenever you want to publish an update. You can also use `pnpm run deploy`; dependencies are managed with pnpm in either case.
+
+To build and preview the GitHub Pages version locally without publishing:
 
 ```bash
-pnpm build --base=/astro-studio-as-portfolio/
+npm run build:pages
+npm run preview -- --base=/astro-studio-as-portfolio/
 ```
 
-Use the corresponding path if you rename the repository. A site served at the domain root can use the default build command. Routing uses URL hashes, so individual pages do not require server-side route rewrites.
+If you rename the repository, update the base path in the `build:pages` script in `package.json`. For another static host serving the site at the domain root, use `pnpm build` and publish `dist/`; `pnpm preview` previews that root-path build. Routing uses URL hashes, so individual pages do not require server-side route rewrites.
 
 ## Content Format
 

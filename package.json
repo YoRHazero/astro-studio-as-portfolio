@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "build:pages": "npm run build -- --base=/astro-studio-as-portfolio/",
+    "deploy": "npm run build:pages && gh-pages -d dist --nojekyll",
     "lint": "oxlint",
     "preview": "vite preview",
     "refresh": "node --experimental-strip-types --no-warnings plugins/content/refresh.ts"
@@ -22,6 +24,7 @@
     "@types/react-dom": "^19.3.0",
     "@types/three": "^0.187.0",
     "@vitejs/plugin-react": "^6.1.2",
+    "gh-pages": "^6.3.0",
     "katex": "^0.19.1",
     "marked": "^18.2.0",
     "oxlint": "^1.90.0",
