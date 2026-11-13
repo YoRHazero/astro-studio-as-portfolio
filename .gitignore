@@ -1,0 +1,40 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+*.tsbuildinfo
+
+# Local asset-authoring workspace (runtime exports live in public/)
+/assets/
+# Local development notes and model contracts
+/dev_docs/
+*.blend
+*.blend[0-9]*
+__pycache__/
+*.py[cod]
+
+# Machine-specific tooling and environment files
+/.claude/
+.env
+.env.*
+!.env.example
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?

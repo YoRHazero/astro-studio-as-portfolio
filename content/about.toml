@@ -1,0 +1,51 @@
+# 个人信息。自由的自我介绍写在 about.md 里。
+
+photo = "photo.jpg"            # content 文件夹里的图片文件名，建议竖版 4:5，宽至少 600 像素。删掉这一行则不显示照片
+role = "Ph.D. candidate in Physics"
+affiliation = "The University of Tokyo"
+location = "Kashiwa, Japan"
+
+[[links]]
+label = "Email"
+url = "mailto:zhuchenghaozero@gmail.com"
+
+[[links]]
+label = "GitHub"
+url = "https://github.com/YoRHazero"
+
+[[links]]
+label = "ORCID"
+url = "https://orcid.org/0000-0002-9888-6895"
+
+# 教育经历，新的在前。note 可选：导师、论文题目等
+[[education]]
+period = "Oct 2024 – Sep 2027 (expected)"
+title = "Ph.D. in Physics"
+place = "The University of Tokyo"
+
+[[education]]
+period = "Oct 2022 – Sep 2024"
+title = "M.S. in Physics"
+place = "The University of Tokyo"
+
+[[education]]
+period = "Sep 2018 – Jul 2022"
+title = "B.S. in Physics"
+place = "Fudan University"
+
+# 技能，按组列出，不分熟练度。组名和分几组都可以自己定
+[[skills]]
+group = "Programming"
+items = ["Python", "Rust", "TypeScript (React)", "SQL"]
+
+[[skills]]
+group = "Methods"
+items = ["Bayesian statistics", "MCMC", "Deep learning (CNN, RNN, Transformer)"]
+
+[[skills]]
+group = "AI tools"
+items = ["Claude Code", "Codex", "llama.cpp", "ComfyUI"]
+
+[[skills]]
+group = "Languages"
+items = ["Chinese (native)", "English (academic)", "Japanese (conversational)"]

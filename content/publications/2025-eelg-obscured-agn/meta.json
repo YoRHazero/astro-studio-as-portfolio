@@ -1,0 +1,113 @@
+{
+  "_note": "Fetched from index.md. Do not edit: write the field in index.md to override it.",
+  "asked": {
+    "doi": "10.3847/1538-4357/adaf1b"
+  },
+  "doi": "10.3847/1538-4357/adaf1b",
+  "arxiv": "2410.12198",
+  "title": "The Physical Origin of Extreme Emission Line Galaxies at High Redshifts: Strong [O III] Emission Lines Produced by Obscured Active Galactic Nuclei",
+  "authors": [
+    {
+      "name": "Chenghao Zhu",
+      "orcid": "0000-0002-9888-6895"
+    },
+    {
+      "name": "Yuichi Harikane",
+      "orcid": "0000-0002-6047-430X"
+    },
+    {
+      "name": "Masami Ouchi",
+      "orcid": "0000-0002-1049-6658"
+    },
+    {
+      "name": "Yoshiaki Ono",
+      "orcid": "0000-0001-9011-7605"
+    },
+    {
+      "name": "Masato Onodera",
+      "orcid": "0000-0003-3228-7264"
+    },
+    {
+      "name": "Shenli Tang",
+      "orcid": "0000-0002-2185-5679"
+    },
+    {
+      "name": "Yuki Isobe",
+      "orcid": "0000-0001-7730-8634"
+    },
+    {
+      "name": "Yoshiki Matsuoka",
+      "orcid": "0000-0001-5063-0340"
+    },
+    {
+      "name": "Toshihiro Kawaguchi",
+      "orcid": "0000-0002-3866-9645"
+    },
+    {
+      "name": "Hiroya Umeda",
+      "orcid": "0009-0008-0167-5129"
+    },
+    {
+      "name": "Kimihiko Nakajima",
+      "orcid": "0000-0003-2965-5070"
+    },
+    {
+      "name": "Yongming Liang",
+      "orcid": "0000-0002-2725-302X"
+    },
+    {
+      "name": "Yi Xu",
+      "orcid": "0000-0002-5768-8235"
+    },
+    {
+      "name": "Yechi Zhang",
+      "orcid": "0000-0003-3817-8739"
+    },
+    {
+      "name": "Dongsheng Sun",
+      "orcid": "0000-0002-1199-6523"
+    },
+    {
+      "name": "Kazuhiro Shimasaku",
+      "orcid": "0000-0002-2597-2231"
+    },
+    {
+      "name": "Jenny Greene",
+      "orcid": "0000-0002-5612-3427"
+    },
+    {
+      "name": "Kazushi Iwasawa",
+      "orcid": "0000-0002-4923-3281"
+    },
+    {
+      "name": "Kotaro Kohno",
+      "orcid": "0000-0002-4052-2394"
+    },
+    {
+      "name": "Tohru Nagao",
+      "orcid": "0000-0002-7402-5441"
+    },
+    {
+      "name": "Andreas Schulze",
+      "orcid": "0000-0002-6660-6131"
+    },
+    {
+      "name": "Takatoshi Shibuya"
+    },
+    {
+      "name": "Miftahul Hilmi",
+      "orcid": "0000-0001-8587-1582"
+    },
+    {
+      "name": "Malte Schramm",
+      "orcid": "0000-0001-7825-0075"
+    }
+  ],
+  "venue": "The Astrophysical Journal",
+  "year": 2025,
+  "abstract": {
+    "format": "jats",
+    "text": "<jats:title>Abstract</jats:title>\n               <jats:p>We present deep Subaru/FOCAS spectra for two extreme emission line galaxies (EELGs) at <jats:italic>z</jats:italic> ∼ 1 with strong <jats:sc>[</jats:sc>O <jats:sc>iii</jats:sc>] <jats:italic>λ</jats:italic>5007 emission lines, exhibiting equivalent widths (EWs) of <jats:inline-formula>\n                     <jats:tex-math>\n\n</jats:tex-math>\n                     <mml:math xmlns:mml=\"http://www.w3.org/1998/Math/MathML\" overflow=\"scroll\">\n                        <mml:mn>290</mml:mn>\n                        <mml:msubsup>\n                           <mml:mrow>\n                              <mml:mn>5</mml:mn>\n                           </mml:mrow>\n                           <mml:mrow>\n                              <mml:mo>−</mml:mo>\n                              <mml:mn>578</mml:mn>\n                           </mml:mrow>\n                           <mml:mrow>\n                              <mml:mo>+</mml:mo>\n                              <mml:mn>946</mml:mn>\n                           </mml:mrow>\n                        </mml:msubsup>\n                     </mml:math>\n                  </jats:inline-formula> Å and <jats:inline-formula>\n                     <jats:tex-math>\n\n</jats:tex-math>\n                     <mml:math xmlns:mml=\"http://www.w3.org/1998/Math/MathML\" overflow=\"scroll\">\n                        <mml:mn>200</mml:mn>\n                        <mml:msubsup>\n                           <mml:mrow>\n                              <mml:mn>0</mml:mn>\n                           </mml:mrow>\n                           <mml:mrow>\n                              <mml:mo>−</mml:mo>\n                              <mml:mn>159</mml:mn>\n                           </mml:mrow>\n                           <mml:mrow>\n                              <mml:mo>+</mml:mo>\n                              <mml:mn>188</mml:mn>\n                           </mml:mrow>\n                        </mml:msubsup>\n                     </mml:math>\n                  </jats:inline-formula> Å, comparable to those of EELGs at high redshifts that are now routinely identified with JWST spectroscopy. Adding a similarly large [O <jats:sc>iii</jats:sc>] EW (<jats:inline-formula>\n                     <jats:tex-math>\n\n</jats:tex-math>\n                     <mml:math xmlns:mml=\"http://www.w3.org/1998/Math/MathML\" overflow=\"scroll\">\n                        <mml:mn>250</mml:mn>\n                        <mml:msubsup>\n                           <mml:mrow>\n                              <mml:mn>8</mml:mn>\n                           </mml:mrow>\n                           <mml:mrow>\n                              <mml:mo>−</mml:mo>\n                              <mml:mn>689</mml:mn>\n                           </mml:mrow>\n                           <mml:mrow>\n                              <mml:mo>+</mml:mo>\n                              <mml:mn>1487</mml:mn>\n                           </mml:mrow>\n                        </mml:msubsup>\n                     </mml:math>\n                  </jats:inline-formula> Å) EELG found at <jats:italic>z</jats:italic> ∼ 2 in the JWST CEERS survey to our sample, we explore the physical origins of the large [O <jats:sc>iii</jats:sc>] EWs of these three galaxies with the Subaru spectra and various public data including JWST/NIRSpec, NIRCam, and MIRI data. While there are no clear signatures of active galactic nuclei (AGNs) identified by the optical line diagnostics, we find that two out of two galaxies covered by the MIRI data show strong near-infrared excess in the spectral energy distributions (SEDs), indicating obscured AGNs. Because none of the three galaxies show clear broad H<jats:italic>β</jats:italic> lines, the upper limits on the flux ratios of broad H<jats:italic>β</jats:italic> to [O <jats:sc>iii</jats:sc>] lines are small, ≲0.15 that are comparable with Seyfert 1.8–2.0 galaxies. We conduct <jats:monospace>Cloudy</jats:monospace> modeling with the stellar and AGN incident spectra, allowing a wide range of parameters, including metallicities and ionization parameters. We find that the large [O <jats:sc>iii</jats:sc>] EWs are not self-consistently reproduced by the spectra of stars or unobscured AGNs, but obscured AGNs that efficiently produce O<jats:sup>++</jats:sup> ionizing photons with weak nuclear and stellar continua that are consistent with the SED shapes.</jats:p>"
+  },
+  "fetched": "2026-11-13"
+}

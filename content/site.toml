@@ -1,0 +1,42 @@
+# 站点信息和界面文字
+
+title = "Chenghao Zhu"           # 浏览器标签页标题
+name = "Chenghao Zhu"
+tagline = "PhD Candidate of Physics"
+# 论文作者列表里你的名字会被加粗。列出你所有的署名写法（不区分大小写）；
+# 论文数据里带 ORCID 时优先按 ORCID 认，不看拼写。
+me = ["Chenghao Zhu", "C. Zhu"]
+orcid = "0000-0002-9888-6895"
+
+# 三个页面。label 是页面标题，object 是游戏里通向它的物件的名字，blurb 是普通版主页上的一行说明。
+[sections.about]
+label = "About"
+object = "Photo frame"
+blurb = "Who I am"
+
+[sections.publications]
+label = "Publications"
+object = "Telescope"
+blurb = "Papers and talks"
+
+[sections.code]
+label = "Code"
+object = "Computer"
+blurb = "Open-source projects"
+
+# 界面上出现的所有固定文字
+[ui]
+back = "Back"
+enter_game = "Enter the station"
+enter_game_note = "A first-person version of this site. Needs a keyboard and mouse."
+enter_plain = "Plain version"
+switch_object = "Main switch"
+hint_start = "Click to look around"
+hint_controls = "WASD move · Mouse look · Esc release"
+hint_interact = "Click to open"
+loading = "Integrating"           # 加载页：游戏下载中
+loading_done = "Target acquired"  # 加载页：下载完成的那一刻
+selected = "Selected"
+et_al = "et al."
+abstract = "Abstract"
+repository = "Repository"

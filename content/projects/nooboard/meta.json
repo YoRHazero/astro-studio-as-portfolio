@@ -1,0 +1,17 @@
+{
+  "_note": "Fetched from index.md. Do not edit: write the field in index.md to override it.",
+  "asked": [
+    "yorhazero/nooboard"
+  ],
+  "repos": [
+    {
+      "name": "nooboard",
+      "url": "https://github.com/YoRHazero/nooboard",
+      "description": "A clipboard sharing tool built by Rust",
+      "language": "Rust",
+      "release": "https://github.com/YoRHazero/nooboard/releases/tag/v0.4.3",
+      "pushed": "2026-11-07"
+    }
+  ],
+  "fetched": "2026-11-13"
+}

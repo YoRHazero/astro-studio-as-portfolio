@@ -1,0 +1,2955 @@
+:root {
+  --bg: #05070c;
+  --text: #e8edf5;
+  --soft: #c9d2e0;
+  --muted: #8f9bb0;
+  --line: rgb(255 255 255 / 0.1);
+  --accent: #dfe9ff;
+  --sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', sans-serif;
+  --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--text);
+  font: 16px/1.65 var(--sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: inherit;
+}
+
+kbd {
+  padding: 1px 6px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  font: 10px var(--mono);
+}
+
+/* Loading screen: the telescope integrating on a quasar while the game downloads (LoadingScreen.tsx).
+   When it is done, a hole opens from the centre of the field and widens until the cabin shows through. */
+@property --iris {
+  syntax: '<length>';
+  inherits: false;
+  initial-value: 0px;
+}
+
+.loader {
+  --field: min(52vmin, 440px);
+  --iris: 0px;
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 50%, rgb(36 64 110 / 0.18), transparent calc(var(--field) * 0.9)),
+    var(--bg);
+  /* A soft-edged hole of radius --iris; at 0 the screen is fully covered. */
+  -webkit-mask-image: radial-gradient(circle at 50% 50%, transparent calc(var(--iris) - 28px), #000 var(--iris));
+  mask-image: radial-gradient(circle at 50% 50%, transparent calc(var(--iris) - 28px), #000 var(--iris));
+  transition:
+    --iris 1.1s cubic-bezier(0.7, 0, 0.25, 1),
+    opacity 0.45s ease 0.7s;
+}
+
+.loader--opening {
+  /* Just past the corners of any screen shape, so the whole curve is spent opening. */
+  --iris: calc(72vmax + 28px);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* The field sits exactly in the middle of the screen, where the hole opens; the readout hangs below it. */
+.loader__instrument {
+  position: relative;
+  transition:
+    transform 1.1s cubic-bezier(0.6, 0, 0.2, 1),
+    opacity 0.6s ease 0.35s;
+}
+
+.loader--opening .loader__instrument {
+  transform: scale(2.2);
+  opacity: 0;
+}
+
+.loader__field {
+  display: block;
+  width: var(--field);
+  height: var(--field);
+}
+
+.loader__readout {
+  position: absolute;
+  top: calc(100% - var(--field-margin) + 18px);
+  left: var(--field-margin);
+  right: var(--field-margin);
+}
+
+.loader__spectrum {
+  display: block;
+  width: 100%;
+  height: 46px;
+}
+
+.loader__bar {
+  height: 1px;
+  margin-top: 8px;
+  background: rgb(255 255 255 / 0.1);
+}
+
+.loader__bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, #24406e, #ff8f6b);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+.loader__status,
+.loader__stats {
+  display: flex;
+  align-items: center;
+  margin: 0;
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  text-transform: uppercase;
+}
+
+.loader__status {
+  gap: 10px;
+  margin-top: 12px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  color: var(--soft);
+}
+
+.loader__status b {
+  flex: 1;
+  font-weight: 500;
+}
+
+.loader__status span {
+  color: var(--text);
+}
+
+.loader__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff8f6b;
+  box-shadow: 0 0 8px #ff8f6b;
+  animation: loader-exposing 1.4s ease-in-out infinite;
+}
+
+.loader--acquired .loader__dot,
+.loader--opening .loader__dot {
+  background: #7dffa5;
+  box-shadow: 0 0 10px #7dffa5;
+  animation: none;
+}
+
+.loader--acquired .loader__status b {
+  color: #ff8f6b;
+}
+
+.loader__stats {
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 10.5px;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.loader__stats span {
+  white-space: nowrap;
+}
+
+.loader__stats span:last-child {
+  min-width: 6ch;
+  text-align: right;
+  text-transform: none;
+}
+
+/* On a phone held upright, vmin is the narrow side: let the field use most of it. */
+@media (orientation: portrait) {
+  .loader {
+    --field: min(84vw, 440px);
+  }
+}
+
+@keyframes loader-exposing {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* Fade to black between the game and the plain site */
+.blackout {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: #000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.blackout--on {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.button {
+  padding: 12px 22px;
+  border: 1px solid var(--text);
+  border-radius: 2px;
+  background: var(--text);
+  color: var(--bg);
+  font: 600 14px var(--sans);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.button:hover,
+.button:focus-visible {
+  background: transparent;
+  color: var(--text);
+  outline: none;
+}
+
+/* ---------- Game ---------- */
+
+.game {
+  position: fixed;
+  inset: 0;
+  user-select: none;
+}
+
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  transition: opacity 0.35s;
+}
+
+.hud--hidden {
+  opacity: 0;
+}
+
+.hud--hidden .hud__plain {
+  pointer-events: none;
+}
+
+.hud__name {
+  position: absolute;
+  top: 32px;
+  left: 40px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 12px rgb(0 0 0 / 0.6);
+}
+
+.hud__name span {
+  display: block;
+  margin-top: 2px;
+  font: 11px var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--soft);
+}
+
+.hud__plain {
+  position: absolute;
+  top: 32px;
+  right: 40px;
+  padding: 8px 14px;
+  border: 1px solid rgb(255 255 255 / 0.25);
+  border-radius: 2px;
+  background: rgb(5 7 12 / 0.55);
+  backdrop-filter: blur(8px);
+  color: var(--text);
+  font: 12px var(--mono);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.hud__plain:hover,
+.hud__plain:focus-visible {
+  border-color: var(--text);
+  outline: none;
+}
+
+.crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.75);
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 0.4);
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.15s ease,
+    height 0.15s ease,
+    border-color 0.15s ease,
+    background-color 0.15s ease;
+}
+
+.crosshair--on {
+  width: 16px;
+  height: 16px;
+  border-color: rgb(255 255 255 / 0.95);
+  background: transparent;
+}
+
+.hud__prompt {
+  position: absolute;
+  top: calc(50% + 24px);
+  left: 50%;
+  display: grid;
+  margin: 0;
+  font: 600 17px/1.4 var(--sans);
+  letter-spacing: 0.035em;
+  text-align: center;
+  text-shadow: 0 1px 3px #000, 0 2px 12px rgb(0 0 0 / 0.85);
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.hud__destination {
+  grid-area: 1 / 1;
+  color: #f6f7fb;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.hud__destination::after {
+  content: '';
+  display: block;
+  width: 24px;
+  height: 2px;
+  margin: 7px auto 0;
+  border-radius: 1px;
+  background: var(--accent);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 0.7);
+}
+
+.hud__destination--on {
+  opacity: 1;
+}
+
+.hud__hint {
+  position: absolute;
+  left: 40px;
+  bottom: 30px;
+  margin: 0;
+  font: 11px var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--soft);
+  text-shadow: 0 1px 8px rgb(0 0 0 / 0.8);
+}
+
+.hud__hint b {
+  display: block;
+  margin-bottom: 6px;
+  font: 600 15px var(--sans);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+}
+
+/* ---------- Plain home ---------- */
+
+.plain {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  background: radial-gradient(ellipse at 50% 0%, #101726, var(--bg) 70%);
+  animation: fade 0.5s both;
+}
+
+.plain__inner {
+  width: min(680px, 100% - 96px);
+  padding: 64px 0;
+}
+
+.plain h1 {
+  margin: 0;
+  font-size: 56px;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.plain__tagline {
+  margin: 14px 0 48px;
+  font: 13px var(--mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.plain__nav {
+  border-top: 1px solid var(--line);
+}
+
+.plain__nav a {
+  display: grid;
+  grid-template-columns: 48px 200px 1fr auto;
+  align-items: baseline;
+  padding: 20px 8px;
+  border-bottom: 1px solid var(--line);
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    padding 0.2s;
+}
+
+.plain__nav a:hover,
+.plain__nav a:focus-visible {
+  padding-left: 18px;
+  background: rgb(255 255 255 / 0.04);
+  outline: none;
+}
+
+.plain__index {
+  font: 12px var(--mono);
+  color: var(--accent);
+}
+
+.plain__label {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.plain__blurb {
+  color: var(--muted);
+}
+
+.plain__arrow {
+  color: var(--accent);
+}
+
+.plain__game {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-top: 48px;
+}
+
+.plain__game p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* ---------- Pages ---------- */
+
+.page {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  overflow-y: auto;
+  background: var(--bg);
+  animation: fade 0.3s both;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+.page--leaving {
+  animation: fade-out 0.45s both;
+  pointer-events: none;
+}
+
+.page__inner {
+  width: min(880px, 100% - 96px);
+  margin: 0 auto;
+  padding: 120px 0 96px;
+}
+
+.back {
+  position: fixed;
+  top: 28px;
+  left: 36px;
+  z-index: 6;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 0;
+  border-radius: 4px;
+  background: rgb(5 7 12 / 0.6);
+  backdrop-filter: blur(8px);
+  color: var(--soft);
+  font: 12px var(--mono);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+}
+
+.back:hover,
+.back:focus-visible {
+  color: var(--text);
+  background: rgb(255 255 255 / 0.1);
+  outline: none;
+}
+
+.kicker {
+  margin: 0;
+  font: 12px var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.page h1 {
+  margin: 8px 0 40px;
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+
+.page h2 {
+  margin: 44px 0 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  font: 12px var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.prose {
+  max-width: 62ch;
+  margin: 0 0 14px;
+  color: var(--soft);
+  text-wrap: pretty;
+}
+
+.prose p {
+  margin: 0 0 14px;
+}
+
+.prose a {
+  color: var(--accent);
+  text-underline-offset: 3px;
+}
+
+.prose h2,
+.prose h3 {
+  margin: 32px 0 10px;
+  padding: 0;
+  border: 0;
+  font: 600 18px var(--sans);
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--text);
+}
+
+.prose ul,
+.prose ol {
+  margin: 0 0 14px;
+  padding-left: 22px;
+}
+
+.prose code {
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: rgb(255 255 255 / 0.08);
+  font: 0.9em var(--mono);
+}
+
+.prose pre {
+  margin: 0 0 14px;
+  padding: 14px 16px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: rgb(0 0 0 / 0.3);
+}
+
+.prose pre code {
+  padding: 0;
+  background: none;
+}
+
+/* Abstracts: "[O iii]" is set in small capitals, and maths arrives as MathML */
+.prose .sc {
+  font-variant: small-caps;
+}
+
+.prose math {
+  font-size: 1.08em;
+  color: var(--text);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.chip {
+  padding: 3px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font: 12px var(--mono);
+  text-decoration: none;
+  color: var(--soft);
+  transition:
+    border-color 0.15s,
+    color 0.15s;
+}
+
+a.chip:hover,
+a.chip:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+
+.chip--main {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.chip--plain {
+  border-color: transparent;
+  background: rgb(255 255 255 / 0.06);
+}
+
+.badge {
+  display: inline-block;
+  margin-left: 10px;
+  padding: 1px 7px;
+  border: 1px solid var(--accent);
+  border-radius: 2px;
+  color: var(--accent);
+  font: 10px/1.6 var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  vertical-align: 3px;
+}
+
+/* ----- About: a station platform after the last train. The boards carry the text; the phone
+   in my hand carries the photo and the ways to reach me. ----- */
+
+.page--about {
+  overflow-x: hidden;
+  background: #04060b;
+}
+
+/* The painting, 3:2, always covering the window. Everything in it is placed in its own percentages. */
+.station__stage {
+  --sh: max(100vh, 66.667vw);
+  --sw: calc(var(--sh) * 1.5);
+  position: fixed;
+  top: calc((100vh - var(--sh)) * 0.45);
+  left: calc((100vw - var(--sw)) / 2);
+  z-index: -1;
+  width: var(--sw);
+  height: var(--sh);
+  overflow: hidden;
+  background: var(--art) center / cover no-repeat;
+  transform: translate(calc(var(--px, 0) * -10px), calc(var(--py, 0) * -6px)) scale(1.03);
+  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  animation: station-in 1.4s ease both;
+}
+
+/* The train runs on the one track, in front of the far platform and behind every board. */
+.station__train {
+  position: absolute;
+  top: 31.64%;
+  left: 100%;
+  width: 570.3%;
+  height: 42.97%;
+  background: var(--train) left center / auto 100% repeat-x;
+  animation: train-pass var(--pass) linear both;
+  will-change: transform;
+}
+
+/* Its windows light the near platform as it goes by. */
+.station__spill {
+  position: absolute;
+  inset: 74% 0 0;
+  background: linear-gradient(rgb(255 196 120 / 0.34), rgb(255 196 120 / 0.05) 70%, transparent);
+  mix-blend-mode: screen;
+  opacity: 0;
+}
+
+.station--passing .station__spill {
+  animation: spill var(--pass) linear both;
+}
+
+/* The one lit tube overhead, and the vending machine across the tracks: both breathe a little. */
+.station__glow {
+  position: absolute;
+  border-radius: 50%;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.station__glow--lamp {
+  top: -6%;
+  left: 55%;
+  width: 42%;
+  height: 34%;
+  background: radial-gradient(closest-side, rgb(255 190 110 / 0.3), transparent);
+  animation: lamp 7s steps(1) infinite;
+}
+
+.station__glow--vending {
+  top: 44%;
+  left: 87%;
+  width: 13%;
+  height: 24%;
+  background: radial-gradient(closest-side, rgb(190 225 255 / 0.28), transparent);
+  animation: breathe 5s ease-in-out infinite;
+}
+
+/* The boards hang over the platform edge, between me and the track. */
+.station__boards {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.08fr) minmax(0, 1fr);
+  gap: 30px 34px;
+  width: min(960px, 100% - 64px);
+  margin: 0 auto;
+  padding: 52px 0 130px;
+  transform: translate(calc(var(--px, 0) * -18px), calc(var(--py, 0) * -10px));
+  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.station__stack {
+  display: grid;
+  gap: 30px;
+  align-content: start;
+}
+
+/* Every board drops in on its rods, one after another, and swings a little when a train passes. */
+.board {
+  position: relative;
+  animation: board-drop 0.9s cubic-bezier(0.25, 1.25, 0.4, 1) both;
+  animation-delay: calc(var(--wait, 0s) + var(--i, 0) * 0.14s);
+}
+
+.board::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 14%;
+  right: 14%;
+  height: 100vh;
+  border: solid rgb(120 132 156 / 0.5);
+  border-width: 0 2px;
+  pointer-events: none;
+}
+
+.board__body {
+  position: relative;
+  transform-origin: 50% -80px;
+}
+
+.station--passing .board__body {
+  animation: sway var(--pass) ease-in-out both;
+}
+
+.page .board__label {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+  font: 600 11px var(--mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* The station name board: a white lightbox, name large, one coloured band. */
+/* The lower board of a pair hangs from the one above it, not from the roof. */
+.station__stack .board + .board::before {
+  height: 30px;
+}
+
+.nameplate {
+  z-index: 2;
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(480px, 100%);
+}
+
+.nameplate .board__body {
+  padding: 16px 26px 14px;
+  border-radius: 5px;
+  background: linear-gradient(#fbf8f0, #ebe6d8);
+  color: #14171e;
+  text-align: center;
+  box-shadow:
+    0 0 0 3px #1b2130,
+    0 0 60px rgb(255 240 210 / 0.22),
+    0 18px 40px rgb(0 0 0 / 0.5);
+}
+
+.nameplate__role {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: #4a5060;
+}
+
+.page .nameplate__name {
+  margin: 2px 0 10px;
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+}
+
+.nameplate__band {
+  position: relative;
+  height: 12px;
+  background: #e8862a;
+}
+
+.nameplate__band::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 18px;
+  height: 18px;
+  margin-left: -9px;
+  background: #14171e;
+}
+
+.nameplate__ends {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 9px 0 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* The notice board: one sheet of paper under its own strip light. */
+.notice .board__body {
+  padding: 14px 16px 18px;
+  border-radius: 4px;
+  background: #18211f;
+  box-shadow:
+    0 0 0 3px #0e1414,
+    0 18px 40px rgb(0 0 0 / 0.5);
+}
+
+.page .notice .board__label {
+  color: #cfd8c8;
+}
+
+.notice__paper {
+  position: relative;
+  padding: 26px 24px 20px;
+  background: linear-gradient(170deg, #f3eee0, #e2dccb);
+  color: #23262d;
+  font-size: 14.5px;
+  line-height: 1.62;
+  transform: rotate(-0.5deg);
+  box-shadow:
+    0 0 50px rgb(255 236 200 / 0.14),
+    0 6px 14px rgb(0 0 0 / 0.45);
+}
+
+.notice__paper::before,
+.notice__paper::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ff9d6b, #b8431c);
+  box-shadow: 0 2px 3px rgb(0 0 0 / 0.4);
+}
+
+.notice__paper::before {
+  left: 10px;
+}
+
+.notice__paper::after {
+  right: 10px;
+}
+
+.notice__paper p {
+  margin: 0 0 12px;
+}
+
+.notice__paper p:last-child {
+  margin-bottom: 0;
+}
+
+/* The route map: where I have been, left to right, and the stop I am at now. */
+.route .board__body {
+  padding: 14px 20px 18px;
+  border-radius: 4px;
+  background: #f4f1e8;
+  color: #14171e;
+  box-shadow:
+    0 0 0 3px #1b2130,
+    0 0 50px rgb(255 240 210 / 0.16),
+    0 18px 40px rgb(0 0 0 / 0.5);
+}
+
+.page .route .board__label {
+  color: #4a5060;
+}
+
+.route__line {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.route__line::before {
+  content: '';
+  position: absolute;
+  top: 9px;
+  left: 0;
+  right: 0;
+  height: 6px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, #e8862a calc(100% - 46px), transparent calc(100% - 46px)),
+    repeating-linear-gradient(90deg, #e8862a 0 6px, transparent 6px 12px);
+}
+
+.route__stop {
+  position: relative;
+  display: grid;
+  padding-top: 34px;
+}
+
+.route__stop::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 24px;
+  height: 24px;
+  box-sizing: border-box;
+  border: 5px solid #14171e;
+  border-radius: 50%;
+  background: #fff;
+}
+
+.route__stop--here::before {
+  border-color: #c62828;
+  animation: here 2.4s ease-out infinite;
+}
+
+.route__code {
+  position: absolute;
+  top: 3px;
+  left: 32px;
+  padding: 0 5px;
+  background: #f4f1e8;
+  font: 700 11px var(--mono);
+  color: #4a5060;
+}
+
+.route__what {
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.route__where {
+  font-size: 13px;
+  color: #4a5060;
+}
+
+.route__when {
+  margin-top: 3px;
+  font: 11px var(--mono);
+  color: #6a7080;
+}
+
+.route__note {
+  margin-top: 3px;
+  font-size: 12px;
+  color: #4a5060;
+}
+
+/* The departure board: amber LEDs on black. */
+.departures .board__body {
+  padding: 14px 18px 16px;
+  border-radius: 4px;
+  background: #07080a;
+  box-shadow:
+    0 0 0 3px #1b2130,
+    0 18px 40px rgb(0 0 0 / 0.5);
+}
+
+.departures .board__body::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(circle, transparent 0.9px, rgb(0 0 0 / 0.42) 1.2px) 0 0 / 3px 3px;
+  pointer-events: none;
+}
+
+.page .departures .board__label {
+  color: #7d8597;
+}
+
+.departures__rows {
+  display: grid;
+  gap: 9px;
+  margin: 0;
+}
+
+.departures__rows > div {
+  display: grid;
+  grid-template-columns: 108px minmax(0, 1fr);
+  gap: 14px;
+  align-items: baseline;
+}
+
+.departures__rows dt {
+  font: 600 13px var(--mono);
+  letter-spacing: 0.04em;
+  color: #7dff9a;
+  text-shadow: 0 0 8px rgb(125 255 154 / 0.5);
+}
+
+.departures__rows dd {
+  margin: 0;
+  font: 600 14px/1.5 var(--mono);
+  color: #ffb24a;
+  text-shadow: 0 0 8px rgb(255 160 50 / 0.55);
+  animation: led 9s steps(1) infinite;
+  animation-delay: calc(var(--i) * -2.3s);
+}
+
+/* The phone in my left hand. It rests low, its screen asleep, and wakes now and then;
+   under the pointer it comes up, and a press unlocks it. */
+.phone {
+  position: fixed;
+  bottom: 0;
+  left: 36px;
+  z-index: 5;
+  width: 196px;
+  height: 404px;
+  padding: 0;
+  border: 0;
+  border-radius: 32px;
+  background: #0b0d12;
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow:
+    inset 0 0 0 2px #2a2f3b,
+    0 20px 60px rgb(0 0 0 / 0.7);
+  transform: translateY(calc(100% - 66px)) rotate(-5deg);
+  transform-origin: 30% 100%;
+  transition: transform 0.55s cubic-bezier(0.25, 1.1, 0.35, 1);
+}
+
+.phone--up {
+  transform: translateY(-26px) rotate(0deg);
+}
+
+.phone--buzz {
+  animation: buzz 0.7s linear 2;
+}
+
+.phone:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 4px;
+}
+
+.phone__screen {
+  position: absolute;
+  inset: 7px;
+  overflow: hidden;
+  border-radius: 26px;
+  background: linear-gradient(160deg, #26324a, #0d1118);
+}
+
+.phone__wallpaper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition:
+    filter 0.4s,
+    transform 0.4s;
+}
+
+.phone--open .phone__wallpaper {
+  filter: blur(14px) brightness(0.55);
+  transform: scale(1.15);
+}
+
+.phone__wallpaper--away {
+  visibility: hidden;
+}
+
+/* Asleep, the screen is nearly dark. */
+.phone__screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: #05070c;
+  opacity: 0.72;
+  pointer-events: none;
+  transition: opacity 0.4s;
+}
+
+.phone--awake .phone__screen::after {
+  opacity: 0;
+}
+
+.phone__pill {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border-radius: 14px;
+  background: rgb(20 24 34 / 0.72);
+  backdrop-filter: blur(10px);
+  font-size: 12px;
+  font-weight: 600;
+  transition: opacity 0.3s;
+}
+
+.phone__pill::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+}
+
+.phone--open .phone__pill,
+.phone--open .phone__lock {
+  opacity: 0;
+}
+
+.phone__lock {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 70px 16px 18px;
+  background: linear-gradient(transparent, rgb(5 7 12 / 0.85));
+  transition: opacity 0.3s;
+}
+
+.phone__time {
+  display: block;
+  font-size: 38px;
+  font-weight: 300;
+  line-height: 1;
+  letter-spacing: -0.02em;
+}
+
+.phone__name {
+  display: block;
+  margin-top: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.phone__hint {
+  display: block;
+  margin-top: 2px;
+  font: 10px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(255 255 255 / 0.7);
+}
+
+.phone__apps {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  align-content: center;
+  gap: 18px 6px;
+  padding: 0 14px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+.phone--open .phone__apps {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.app {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 500;
+  color: #fff;
+  text-decoration: none;
+  transform: scale(0.6);
+  opacity: 0;
+  transition:
+    transform 0.4s cubic-bezier(0.3, 1.5, 0.5, 1),
+    opacity 0.3s;
+  transition-delay: calc(var(--i) * 0.06s);
+}
+
+.phone--open .app {
+  transform: none;
+  opacity: 1;
+}
+
+.app__icon {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: var(--tint, #3a4152);
+  box-shadow: 0 4px 12px rgb(0 0 0 / 0.4);
+  transition:
+    transform 0.2s,
+    box-shadow 0.2s;
+}
+
+.app__icon svg {
+  width: 26px;
+  height: 26px;
+  fill: #fff;
+}
+
+.app:hover .app__icon,
+.app:focus-visible .app__icon {
+  transform: translateY(-3px) scale(1.08);
+  box-shadow:
+    0 0 0 2px #fff,
+    0 8px 20px rgb(0 0 0 / 0.5);
+}
+
+.app:focus-visible {
+  outline: none;
+}
+
+/* The photo on its way from the frame in the game into the phone. */
+.station__flight {
+  position: fixed;
+  z-index: 7;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+@keyframes station-in {
+  from {
+    filter: blur(18px) brightness(0.3);
+  }
+}
+
+@keyframes train-pass {
+  to {
+    transform: translateX(calc(-100% - var(--sw)));
+  }
+}
+
+@keyframes spill {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  12%,
+  30%,
+  52%,
+  74%,
+  88% {
+    opacity: 1;
+  }
+  21%,
+  41%,
+  63%,
+  81% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes lamp {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  61% {
+    opacity: 0.55;
+  }
+  62% {
+    opacity: 1;
+  }
+  64% {
+    opacity: 0.4;
+  }
+  65% {
+    opacity: 1;
+  }
+}
+
+@keyframes breathe {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes board-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-70vh);
+  }
+}
+
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(0.5deg);
+  }
+  50% {
+    transform: rotate(-0.4deg);
+  }
+  75% {
+    transform: rotate(0.25deg);
+  }
+}
+
+@keyframes here {
+  0% {
+    box-shadow: 0 0 0 0 rgb(198 40 40 / 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 12px rgb(198 40 40 / 0);
+  }
+}
+
+@keyframes led {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  48% {
+    opacity: 0.82;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes buzz {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  20%,
+  60% {
+    translate: -2px -5px;
+  }
+  40%,
+  80% {
+    translate: 2px -5px;
+  }
+}
+
+@media (max-width: 820px) {
+  .station__boards {
+    grid-template-columns: minmax(0, 1fr);
+    width: min(520px, 100% - 32px);
+    padding-bottom: 150px;
+  }
+
+  .phone {
+    left: 16px;
+  }
+}
+
+/* ----- Publications: the telescope's field of view, the catalogue, and one paper ----- */
+
+.page--publications {
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 60% 45% at 30% 50%, rgb(255 110 70 / 0.1), transparent 70%),
+    var(--bg);
+}
+
+.warp {
+  position: fixed;
+  inset: 0;
+  z-index: 5;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.sky {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 56px;
+  padding: 0 64px 0 56px;
+}
+
+.sky--zoomed {
+  pointer-events: none;
+}
+
+.scope {
+  position: relative;
+  justify-self: center;
+  width: min(100%, 82vh);
+  aspect-ratio: 1;
+  transition: opacity 0.45s 0.45s;
+}
+
+.sky--zoomed .scope {
+  opacity: 0;
+}
+
+.field {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: radial-gradient(circle, #0a1020 0%, #05070c 72%);
+  box-shadow:
+    0 0 0 1px rgb(255 255 255 / 0.14),
+    0 0 0 14px rgb(255 255 255 / 0.03),
+    0 0 90px rgb(255 120 80 / 0.12);
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+
+.field:active {
+  cursor: grabbing;
+}
+
+.field__stars {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+}
+
+/* Crosshair, as in an eyepiece */
+.field__reticle {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background:
+    linear-gradient(rgb(255 255 255 / 0.12), rgb(255 255 255 / 0.12)) 50% 50% / 1px 100% no-repeat,
+    linear-gradient(rgb(255 255 255 / 0.12), rgb(255 255 255 / 0.12)) 50% 50% / 100% 1px no-repeat;
+  mask: radial-gradient(circle, transparent 0 7%, #000 7.2% 100%);
+  pointer-events: none;
+}
+
+/* The patch of sky. Field.tsx moves and scales it; sources undo the scale so they stay the same size. */
+.field__layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.source {
+  position: absolute;
+  width: 44px;
+  height: 44px;
+  margin: -22px;
+  border-radius: 50%;
+  transform: scale(calc(1 / var(--zoom, 1)));
+  pointer-events: auto;
+  -webkit-user-drag: none;
+}
+
+.source--out {
+  visibility: hidden;
+}
+
+/* The dot itself: small, red, soft-edged */
+.source::before {
+  content: '';
+  position: absolute;
+  inset: 15px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ffd9c2 0%, #ff7a4d 38%, rgb(255 90 60 / 0) 72%);
+  box-shadow: 0 0 14px 2px rgb(255 100 60 / 0.45);
+  transition: transform 0.2s;
+}
+
+.source--bright::before {
+  inset: 11px;
+  box-shadow: 0 0 22px 5px rgb(255 120 70 / 0.6);
+}
+
+/* A ring closes in on the source being pointed at */
+.source::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  opacity: 0;
+  transform: scale(1.6);
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
+
+.source--on {
+  z-index: 1;
+}
+
+.source--on::before {
+  transform: scale(1.5);
+}
+
+.source--on::after {
+  opacity: 0.9;
+  transform: scale(1);
+}
+
+.source span {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 10px);
+  width: max-content;
+  max-width: 260px;
+  padding: 5px 10px;
+  background: rgb(5 7 12 / 0.9);
+  border-left: 2px solid var(--accent);
+  font-size: 13px;
+  line-height: 1.35;
+  opacity: 0;
+  transform: translateY(-50%);
+  pointer-events: none;
+  transition: opacity 0.15s;
+}
+
+.source--on span {
+  opacity: 1;
+}
+
+/* Sources on the right half label to the left, so the label stays inside the field */
+.source--flip span {
+  right: calc(100% + 10px);
+  left: auto;
+  border-right: 2px solid var(--accent);
+  border-left: 0;
+  text-align: right;
+}
+
+.scope__tools {
+  position: absolute;
+  right: 3%;
+  bottom: 3%;
+  display: grid;
+  gap: 6px;
+}
+
+.scope__tools button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 50%;
+  background: rgb(5 7 12 / 0.8);
+  color: var(--soft);
+  font: 16px/1 var(--sans);
+  cursor: pointer;
+}
+
+.scope__tools button:hover,
+.scope__tools button:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+
+.catalog {
+  max-height: 100vh;
+  padding: 110px 12px 64px 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+  transition:
+    opacity 0.35s,
+    transform 0.5s;
+}
+
+.sky--zoomed .catalog {
+  opacity: 0;
+  transform: translateX(48px);
+}
+
+.catalog h1 {
+  margin-bottom: 28px;
+}
+
+.catalog__hint {
+  margin: 18px 0 0;
+  font: 11px var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.catalog ol {
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--line);
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  gap: 3px;
+  padding: 15px 14px 15px 16px;
+  border-bottom: 1px solid var(--line);
+  border-left: 2px solid transparent;
+  text-decoration: none;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.row--on,
+.row:focus-visible {
+  border-left-color: var(--accent);
+  background: rgb(255 255 255 / 0.05);
+  outline: none;
+}
+
+.row__title {
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
+.row__meta {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.paper {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  opacity: 0;
+  visibility: hidden;
+  background: radial-gradient(ellipse 70% 50% at 50% -5%, rgb(255 110 70 / 0.2), transparent 70%);
+  transition:
+    opacity 0.35s,
+    visibility 0s 0.35s;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+.paper--open {
+  opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.5s 0.5s,
+    visibility 0s;
+}
+
+.paper__inner {
+  width: min(1120px, 100% - 96px);
+  margin: 0 auto;
+  padding: 120px 0 96px;
+}
+
+/* The nucleus sits beside the title; the header keeps room for it. */
+.paper__head {
+  position: relative;
+  display: grid;
+  align-content: center;
+  min-height: 400px;
+  padding-right: 50%;
+}
+
+.paper__object {
+  position: absolute;
+  top: -70px;
+  right: -6%;
+  width: 58%;
+  height: 520px;
+  pointer-events: none;
+  mask: radial-gradient(closest-side, #000 55%, transparent);
+}
+
+/* It grows out of the source we pushed in on */
+.paper--open .paper__object {
+  animation: unfold 1s 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.paper h1 {
+  margin-bottom: 20px;
+  font-size: 44px;
+  text-wrap: balance;
+}
+
+.paper__authors {
+  margin: 0;
+  font-size: 17px;
+  color: #aab4c5;
+}
+
+.paper__authors strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.paper__body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 56px;
+  align-items: start;
+}
+
+.paper__body--text {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.paper__body .gallery {
+  margin-top: 44px;
+}
+
+/* ----- Figure viewer: every figure of a paper or project in one place ----- */
+
+.gallery {
+  outline: none;
+}
+
+.gallery__stage {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: #0c1220;
+}
+
+.gallery__stage a {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  cursor: zoom-in;
+}
+
+.gallery__stage img {
+  max-width: 100%;
+  max-height: 100%;
+  animation: fade 0.25s both;
+}
+
+.gallery:focus-visible .gallery__stage {
+  border-color: var(--accent);
+}
+
+.gallery__step {
+  position: absolute;
+  top: 50%;
+  width: 36px;
+  height: 36px;
+  margin-top: -18px;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 50%;
+  background: rgb(5 7 12 / 0.8);
+  color: var(--text);
+  font: 15px/1 var(--sans);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.gallery__step--prev {
+  left: 12px;
+}
+
+.gallery__step--next {
+  right: 12px;
+}
+
+.gallery__stage:hover .gallery__step,
+.gallery__step:focus-visible {
+  opacity: 1;
+}
+
+.gallery__step:hover,
+.gallery__step:focus-visible {
+  border-color: var(--accent);
+  color: var(--accent);
+  outline: none;
+}
+
+.gallery__bar {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  min-height: 2.6em;
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+.gallery__bar p {
+  margin: 0;
+}
+
+.gallery__bar span {
+  flex: none;
+  font-family: var(--mono);
+}
+
+.gallery__strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.gallery__thumb {
+  width: 84px;
+  aspect-ratio: 16 / 10;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  background: #0c1220;
+  cursor: pointer;
+  opacity: 0.55;
+  transition:
+    opacity 0.15s,
+    border-color 0.15s;
+}
+
+.gallery__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.gallery__thumb:hover,
+.gallery__thumb:focus-visible {
+  opacity: 1;
+  outline: none;
+}
+
+.gallery__thumb--on {
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+/* ----- Code: the computer on the desk. Lock screen, desktop, windows, dock ----- */
+
+.page--code {
+  --tint: var(--accent);
+  --menubar: 34px;
+  --dock: 92px;
+  overflow: hidden;
+  background: #060d18;
+}
+
+/* Lock screen: the same picture the monitor in the cabin shows */
+.lock {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  background: #060d18;
+  transition:
+    opacity 0.45s,
+    transform 0.6s cubic-bezier(0.5, 0, 0.2, 1),
+    visibility 0s;
+}
+
+/* Waking: the lock screen lifts away */
+.lock--gone {
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-8%);
+  transition:
+    opacity 0.45s,
+    transform 0.6s cubic-bezier(0.5, 0, 0.2, 1),
+    visibility 0s 0.6s;
+}
+
+.lock__clock {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  white-space: nowrap;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+}
+
+.lock__clock::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 90vw;
+  height: 90vw;
+  background: radial-gradient(circle, rgb(70 130 220 / 0.22), rgb(70 130 220 / 0) 70%);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.lock__time {
+  position: relative;
+  margin: 0;
+  font-size: var(--clock);
+  font-weight: 200;
+  line-height: 1;
+  color: #dcecff;
+}
+
+.lock__date {
+  position: absolute;
+  top: calc(50% + var(--below));
+  left: 50%;
+  margin: 0;
+  font-size: var(--date);
+  line-height: 1;
+  color: #6f8bb0;
+  transform: translate(-50%, -50%);
+}
+
+/* The desktop. Its background is what shows where WebGL is missing; the wallpaper covers it. */
+.desktop {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 70% 60% at 20% 15%, rgb(90 60 190 / 0.3), transparent 70%),
+    radial-gradient(ellipse 80% 70% at 78% 110%, rgb(60 120 210 / 0.4), transparent 70%),
+    #060d18;
+}
+
+.wallpaper {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* Film grain over the wallpaper, so the glass has something to catch */
+.desktop__grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+}
+
+.menubar {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  gap: 22px;
+  align-items: center;
+  height: var(--menubar);
+  padding: 0 22px 0 190px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  background: rgb(8 16 28 / 0.45);
+  backdrop-filter: blur(24px) saturate(1.5);
+  font-size: 13px;
+  color: var(--soft);
+  transition: opacity 0.4s 0.1s;
+}
+
+.menubar__app {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.menubar__clock {
+  margin-left: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.page--code .back {
+  top: 1px;
+  left: 14px;
+  background: none;
+  backdrop-filter: none;
+}
+
+/* Windows are glass: the wallpaper shows through, a highlight runs along the top edge */
+.window {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.13);
+  border-radius: 14px;
+  background: linear-gradient(rgb(22 32 52 / 0.72), rgb(10 17 30 / 0.84));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    0 0 0 1px rgb(0 0 0 / 0.5),
+    0 40px 100px rgb(0 0 0 / 0.6),
+    0 10px 30px rgb(0 0 0 / 0.35);
+  backdrop-filter: blur(36px) saturate(1.6);
+}
+
+.window__bar {
+  display: flex;
+  flex: none;
+  gap: 14px;
+  align-items: center;
+  height: 44px;
+  padding: 0 14px 0 16px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  background: linear-gradient(rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.02));
+}
+
+.window__title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.window__path {
+  overflow: hidden;
+  font: 12px var(--mono);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--muted);
+}
+
+/* The three lights. Only the first does anything, and only on a project's window */
+.lights {
+  display: flex;
+  flex: none;
+  gap: 8px;
+  margin-right: 4px;
+}
+
+.light {
+  display: block;
+  width: 12px;
+  height: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.16);
+  box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.25);
+}
+
+.window--project .light:nth-child(2) {
+  background: #febc2e;
+}
+
+.window--project .light:nth-child(3) {
+  background: #28c840;
+}
+
+.light--close {
+  background: #ff5f57;
+  color: transparent;
+  font: 700 11px/12px var(--sans);
+  text-align: center;
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+
+.lights:hover .light--close,
+.light--close:focus-visible {
+  color: rgb(60 0 0 / 0.75);
+  outline: none;
+}
+
+.light--close:focus-visible {
+  box-shadow: 0 0 0 3px rgb(255 95 87 / 0.4);
+}
+
+.window__foot {
+  flex: none;
+  margin: 0;
+  padding: 9px 18px;
+  border-top: 1px solid rgb(255 255 255 / 0.08);
+  font: 12px var(--mono);
+  color: var(--muted);
+}
+
+/* Windows arrive as the lock screen lifts, and step back when another opens over them */
+.window--files {
+  position: absolute;
+  top: calc(50% + (var(--menubar) - var(--dock)) / 2);
+  left: 50%;
+  width: min(1120px, 100% - 96px);
+  max-height: calc(100% - var(--menubar) - var(--dock) - 48px);
+  transform: translate(-50%, -50%);
+  transition:
+    opacity 0.45s 0.15s,
+    transform 0.55s 0.15s cubic-bezier(0.2, 0.7, 0.2, 1),
+    filter 0.4s;
+}
+
+.desktop--locked .window--files,
+.desktop--locked .menubar,
+.desktop--locked .dock {
+  opacity: 0;
+}
+
+.desktop--locked .window--files {
+  transform: translate(-50%, -47%) scale(0.97);
+}
+
+.window--behind {
+  filter: brightness(0.35) saturate(0.7) blur(3px);
+  transform: translate(-50%, -50%) scale(0.96);
+  pointer-events: none;
+}
+
+/* A language, with its colour */
+.langs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+}
+
+.lang {
+  display: inline-flex;
+  gap: 7px;
+  align-items: center;
+  font: 12px var(--mono);
+  white-space: nowrap;
+  color: var(--soft);
+}
+
+.lang i {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.lang em {
+  font-style: normal;
+  color: var(--muted);
+}
+
+/* Covers and icons. A cover is an SVG that fills whatever holds it (Cover.tsx) */
+.cover {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* A project's own icon, far out of focus, standing in for the cover */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(36px) saturate(1.7) brightness(0.8);
+  transform: scale(1.6);
+}
+
+.glyph {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: 24%;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.16),
+    0 4px 12px rgb(0 0 0 / 0.4);
+}
+
+.glyph--icon {
+  object-fit: cover;
+  background: rgb(255 255 255 / 0.06);
+}
+
+.glyph b {
+  position: relative;
+  font: 700 22px/1 var(--sans);
+  color: #fff;
+  text-shadow: 0 1px 8px rgb(0 0 0 / 0.5);
+}
+
+/* Rows come up one after another once the lock screen has lifted; a long list does not keep you waiting */
+.desktop:not(.desktop--locked) .files li {
+  animation: rise 0.6s calc(0.25s + min(var(--i), 8) * 0.06s) cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+/* The list of projects */
+.files__head,
+.file {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 230px 84px 110px;
+  gap: 24px;
+  align-items: center;
+}
+
+.files__head {
+  flex: none;
+  height: 34px;
+  padding: 0 22px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  font: 11px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.files {
+  margin: 0;
+  padding: 8px;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+.file {
+  position: relative;
+  min-height: 76px;
+  padding: 0 14px;
+  border-radius: 12px;
+  text-decoration: none;
+  transition: background 0.2s;
+}
+
+.file:hover,
+.file:focus-visible {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--tint) 18%, transparent), color-mix(in srgb, var(--tint) 5%, transparent));
+  outline: none;
+}
+
+.file__main {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  min-width: 0;
+}
+
+.file__glyph {
+  width: 46px;
+  height: 46px;
+  transition: transform 0.3s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.file:hover .file__glyph,
+.file:focus-visible .file__glyph {
+  transform: scale(1.08);
+}
+
+.file__glyph b {
+  font-size: 20px;
+}
+
+.file__text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.file__name {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.file__summary {
+  overflow: hidden;
+  font-size: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--soft);
+}
+
+.file__lang {
+  overflow: hidden;
+}
+
+.file__lang .langs {
+  flex-wrap: nowrap;
+  gap: 12px;
+}
+
+.file__version,
+.file__date {
+  font: 13px var(--mono);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.file:hover .file__version,
+.file:focus-visible .file__version {
+  color: var(--tint);
+}
+
+/* A folder, drawn with two boxes: the dock's way back to every project */
+.file__icon {
+  position: relative;
+  flex: none;
+  width: 22px;
+  height: 15px;
+  margin-top: 4px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.file__icon::before {
+  content: '';
+  position: absolute;
+  top: -4px;
+  left: 0;
+  width: 10px;
+  height: 5px;
+  border-radius: 2px 2px 0 0;
+  background: var(--accent);
+}
+
+/* The project window grows out of whatever was clicked (Code.tsx sets the origin) */
+.stage {
+  position: absolute;
+  inset: var(--menubar) 0 var(--dock);
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: scale(0.25);
+  transition:
+    opacity 0.25s,
+    transform 0.35s cubic-bezier(0.5, 0, 0.8, 0.4),
+    visibility 0s 0.35s;
+}
+
+.stage--open {
+  opacity: 1;
+  visibility: visible;
+  transform: none;
+  transition:
+    opacity 0.3s,
+    transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1),
+    visibility 0s;
+}
+
+.window--project {
+  width: min(1160px, 100% - 72px);
+  height: calc(100% - 36px);
+  /* Nearly opaque: the file manager behind must not read through the text */
+  background: linear-gradient(rgb(20 29 48 / 0.95), rgb(10 16 28 / 0.97));
+}
+
+.window__body {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line) transparent;
+}
+
+/* The top of a project's window: its cover as a banner, fading into the glass */
+.hero {
+  position: relative;
+  padding: 104px 44px 30px;
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.hero__art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(#000, rgb(0 0 0 / 0.08));
+  mask-image: linear-gradient(#000, rgb(0 0 0 / 0.08));
+}
+
+.hero__art .cover {
+  animation: drift 1.4s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.hero__art--icon .backdrop {
+  filter: blur(70px) saturate(1.7) brightness(0.75);
+}
+
+.hero__row,
+.actions {
+  position: relative;
+  animation: rise 0.6s 0.12s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.actions {
+  animation-delay: 0.2s;
+}
+
+.hero__row {
+  display: flex;
+  gap: 24px;
+  align-items: flex-end;
+}
+
+.hero__glyph {
+  width: 92px;
+  height: 92px;
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.22),
+    0 18px 40px rgb(0 0 0 / 0.5);
+}
+
+.hero__glyph b {
+  font-size: 42px;
+}
+
+.hero h1 {
+  margin: 0 0 8px;
+  font-size: 44px;
+  font-weight: 650;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+  text-shadow: 0 2px 24px rgb(0 0 0 / 0.5);
+}
+
+.project__summary {
+  max-width: 60ch;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.45;
+  color: var(--text);
+  text-shadow: 0 1px 16px rgb(0 0 0 / 0.6);
+  text-wrap: pretty;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+
+.action {
+  padding: 8px 18px;
+  border: 1px solid rgb(255 255 255 / 0.2);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.08);
+  backdrop-filter: blur(10px);
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--text);
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    box-shadow 0.2s,
+    transform 0.15s;
+}
+
+.action:hover,
+.action:focus-visible {
+  border-color: rgb(255 255 255 / 0.4);
+  background: rgb(255 255 255 / 0.16);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.action--main {
+  border-color: transparent;
+  background: var(--tint);
+  box-shadow: 0 8px 28px -8px var(--tint);
+  color: #07101d;
+}
+
+.action--main:hover,
+.action--main:focus-visible {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--tint) 85%, #fff);
+  box-shadow: 0 10px 34px -6px var(--tint);
+}
+
+.project__columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+  gap: 44px;
+  align-items: start;
+  padding: 32px 44px 48px;
+  animation: rise 0.6s 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.project__main .prose {
+  font-size: 16.5px;
+  line-height: 1.7;
+}
+
+.project__main .prose a,
+.project__main .prose strong {
+  color: var(--text);
+}
+
+.project__side {
+  display: grid;
+  gap: 20px;
+}
+
+/* The facts about a project, in a panel beside its introduction */
+.info {
+  margin: 0;
+  padding: 4px 18px;
+  border: 1px solid rgb(255 255 255 / 0.09);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.035);
+}
+
+.info > div {
+  padding: 14px 0;
+}
+
+.info > div + div {
+  border-top: 1px solid rgb(255 255 255 / 0.07);
+}
+
+.info dt {
+  margin-bottom: 7px;
+  font: 11px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.info dd {
+  margin: 0;
+  font-size: 14px;
+  color: var(--text);
+}
+
+.info__bar {
+  display: flex;
+  gap: 2px;
+  height: 6px;
+  margin-bottom: 10px;
+  overflow: hidden;
+  border-radius: 3px;
+}
+
+.info__bar i {
+  flex-basis: 0;
+}
+
+.info__soft {
+  color: var(--muted);
+}
+
+.info__release {
+  font-family: var(--mono);
+  text-decoration: none;
+  color: var(--tint);
+}
+
+.info__release:hover,
+.info__release:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  outline: none;
+}
+
+.info__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.info__tags .chip {
+  padding: 2px 10px;
+}
+
+/* A project made of several repositories shows each as a small card under its introduction */
+.repos {
+  margin-top: 30px;
+}
+
+.repos h2 {
+  margin: 0 0 12px;
+  padding: 0;
+  border: 0;
+  font: 11px var(--mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.repos ul {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.repo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px 12px;
+  border: 1px solid rgb(255 255 255 / 0.09);
+  border-left: 2px solid var(--tint);
+  border-radius: 10px;
+  background: rgb(255 255 255 / 0.035);
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+
+.repo:hover {
+  border-color: color-mix(in srgb, var(--tint) 45%, transparent);
+  border-left-color: var(--tint);
+  background: color-mix(in srgb, var(--tint) 8%, transparent);
+}
+
+.repo a {
+  text-decoration: none;
+}
+
+.repo a:hover,
+.repo a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  outline: none;
+}
+
+.repo__name {
+  font: 600 14px var(--mono);
+  color: var(--text);
+}
+
+.repo__name span {
+  color: var(--muted);
+}
+
+.repo p {
+  margin: 0;
+}
+
+.repo__about {
+  flex: 1;
+  font-size: 13.5px;
+  line-height: 1.5;
+  color: var(--soft);
+}
+
+.repo__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  align-items: center;
+  padding-top: 6px;
+  font: 12px var(--mono);
+  color: var(--muted);
+}
+
+.repo__meta a {
+  color: var(--tint);
+}
+
+.repo__pushed {
+  margin-left: auto;
+}
+
+/* The dock: every project one click away, whichever window is up */
+.dock {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  z-index: 3;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+  padding: 8px 10px;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 20px;
+  background: rgb(20 30 50 / 0.45);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    0 20px 50px rgb(0 0 0 / 0.5);
+  backdrop-filter: blur(30px) saturate(1.6);
+  transform: translateX(-50%);
+  transition:
+    opacity 0.45s 0.25s,
+    transform 0.55s 0.25s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+.desktop--locked .dock {
+  transform: translate(-50%, 30px);
+}
+
+.dock__item {
+  position: relative;
+  display: block;
+  text-decoration: none;
+  transition: transform 0.2s cubic-bezier(0.2, 0.7, 0.2, 1);
+  transform-origin: 50% 100%;
+}
+
+.dock__item:hover,
+.dock__item:focus-visible {
+  transform: translateY(-6px) scale(1.14);
+  outline: none;
+}
+
+.dock__item:focus-visible .glyph {
+  box-shadow:
+    0 0 0 2px var(--accent),
+    0 4px 12px rgb(0 0 0 / 0.4);
+}
+
+/* A dot under whatever is open */
+.dock__item::after {
+  content: '';
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--text);
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 0.2s;
+}
+
+.dock__item--on::after {
+  opacity: 0.9;
+}
+
+.dock__all {
+  background: linear-gradient(rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.05));
+}
+
+.dock__none {
+  border: 1px dashed rgb(255 255 255 / 0.18);
+  box-shadow: none;
+}
+
+.dock__tip {
+  position: absolute;
+  bottom: calc(100% + 12px);
+  left: 50%;
+  padding: 3px 10px;
+  border: 1px solid rgb(255 255 255 / 0.14);
+  border-radius: 7px;
+  background: rgb(10 17 30 / 0.9);
+  font-size: 12px;
+  white-space: nowrap;
+  color: var(--text);
+  opacity: 0;
+  transform: translate(-50%, 4px) scale(0.88);
+  transition:
+    opacity 0.15s,
+    transform 0.15s;
+  pointer-events: none;
+}
+
+.dock__item:hover .dock__tip,
+.dock__item:focus-visible .dock__tip {
+  opacity: 1;
+  transform: translate(-50%, 0) scale(0.88);
+}
+
+@media (max-width: 900px) {
+  .window--files {
+    width: calc(100% - 32px);
+  }
+
+  .window--project {
+    width: calc(100% - 24px);
+    height: calc(100% - 20px);
+  }
+
+  .window__path,
+  .files__head,
+  .file__lang,
+  .file__version {
+    display: none;
+  }
+
+  .file {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .file__summary {
+    white-space: normal;
+  }
+
+  .hero {
+    padding: 72px 22px 24px;
+  }
+
+  .hero__row {
+    flex-direction: column;
+    gap: 16px;
+    align-items: flex-start;
+  }
+
+  .hero__glyph {
+    width: 64px;
+    height: 64px;
+  }
+
+  .hero h1 {
+    font-size: 32px;
+  }
+
+  .project__columns {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 28px;
+    padding: 24px 22px 36px;
+  }
+}
+
+@keyframes drift {
+  from {
+    opacity: 0;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+}
+
+@keyframes unfold {
+  from {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page,
+  .plain,
+  .caret,
+  .station__stage,
+  .station__glow,
+  .board,
+  .departures__rows dd,
+  .route__stop--here::before,
+  .paper--open .paper__object,
+  .desktop:not(.desktop--locked) .files li,
+  .hero__art .cover,
+  .hero__row,
+  .actions,
+  .project__columns {
+    animation: none;
+  }
+
+  .crosshair,
+  .hud__destination,
+  .scope,
+  .catalog,
+  .paper,
+  .lock,
+  .stage,
+  .window--files,
+  .dock,
+  .dock__item,
+  .file__glyph,
+  .station__stage,
+  .station__boards,
+  .phone {
+    transition: none;
+  }
+
+  /* The loading screen simply fades instead of opening and zooming. */
+  .loader {
+    transition: opacity 0.5s ease;
+  }
+
+  .loader--opening {
+    --iris: 0px;
+  }
+
+  .loader--opening .loader__instrument {
+    transform: none;
+  }
+
+  .loader__dot {
+    animation: none;
+  }
+}

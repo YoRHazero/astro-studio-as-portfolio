@@ -1,0 +1,42 @@
+{
+  "_note": "Fetched from index.md. Do not edit: write the field in index.md to override it.",
+  "asked": [
+    "yorhazero/noobrowser",
+    "yorhazero/noobackend",
+    "yorhazero/jwstnoobfriend",
+    "yorhazero/noobase"
+  ],
+  "repos": [
+    {
+      "name": "noobrowser",
+      "url": "https://github.com/YoRHazero/noobrowser",
+      "description": "A web-based app for WFSS visual inspection",
+      "language": "TypeScript",
+      "homepage": "https://yorhazero.github.io/noobrowser/",
+      "release": "https://github.com/YoRHazero/noobrowser/releases/tag/v0.2.0",
+      "pushed": "2026-08-13"
+    },
+    {
+      "name": "noobackend",
+      "url": "https://github.com/YoRHazero/noobackend",
+      "description": "The FASTAPI backend app for visual inspection tool of jwst wfss data.",
+      "language": "Python",
+      "pushed": "2026-03-23"
+    },
+    {
+      "name": "jwstnoobfriend",
+      "url": "https://github.com/YoRHazero/jwstnoobfriend",
+      "language": "Python",
+      "pushed": "2026-11-04"
+    },
+    {
+      "name": "noobase",
+      "url": "https://github.com/YoRHazero/noobase",
+      "description": "Basic tools for spectroscopy and photometry.",
+      "language": "Rust",
+      "homepage": "https://yorhazero.github.io/noobase/",
+      "pushed": "2026-07-12"
+    }
+  ],
+  "fetched": "2026-11-13"
+}

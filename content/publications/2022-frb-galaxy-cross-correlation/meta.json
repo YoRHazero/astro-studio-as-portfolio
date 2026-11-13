@@ -1,0 +1,26 @@
+{
+  "_note": "Fetched from index.md. Do not edit: write the field in index.md to override it.",
+  "asked": {
+    "doi": "10.1103/physrevd.106.023513"
+  },
+  "doi": "10.1103/physrevd.106.023513",
+  "arxiv": "2205.03867",
+  "title": "Improvement of cosmological constraints with the cross-correlation between line-of-sight optical galaxy and FRB dispersion measures",
+  "authors": [
+    {
+      "name": "Chenghao Zhu",
+      "orcid": "0000-0002-9888-6895"
+    },
+    {
+      "name": "Jiajun Zhang",
+      "orcid": "0000-0002-4117-343X"
+    }
+  ],
+  "venue": "Physical Review D",
+  "year": 2022,
+  "abstract": {
+    "format": "latex",
+    "text": "Fast Radio Bursts (hereafter FRBs) can be used in cosmology by studying the Dispersion Measure (hereafter DM) as a function of redshift. The large scale structure of matter distribution is regarded as a major error budget for such application. Using optical galaxy and dispersion measure mocks built from N-body simulations, we have shown that the galaxy number density can be used as a tracer for large scale electron density and help improve the measurement of DM as a function of redshift. We have shown that, using the line-of-sight galaxy number counts within 1' around the given localized FRB source can help improve the cosmological parameter constraints by more than 20%."
+  },
+  "fetched": "2026-11-13"
+}
